@@ -1,0 +1,72 @@
+package todo
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2/bson"
+)
+
+var dao = ItemsDao{}
+
+func AllItemsEndPoint(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "not implemented yet !")
+}
+
+func FindItemEndpoint(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "not implemented yet !")
+}
+
+func CreateItemEndPoint(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var item Item
+
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	item.ID = bson.NewObjectId()
+
+	if err := dao.Insert(item); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJson(w, http.StatusCreated, item)
+}
+
+func UpdateItemEndPoint(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "not implemented yet !")
+}
+
+func DeleteItemEndPoint(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "not implemented yet !")
+}
+
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	respondWithJson(w, code, map[string]string{"error": msg})
+}
+
+func respondWithJson(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/items", AllItemsEndPoint).Methods("GET")
+	r.HandleFunc("/items", CreateItemEndPoint).Methods("POST")
+	r.HandleFunc("/items", UpdateItemEndPoint).Methods("PUT")
+	r.HandleFunc("/items", DeleteItemEndPoint).Methods("DELETE")
+	r.HandleFunc("/items/{id}", FindItemEndpoint).Methods("GET")
+
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		log.Fatal(err)
+	}
+}

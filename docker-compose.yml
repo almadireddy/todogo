@@ -1,0 +1,23 @@
+version: '3'
+services:
+  app:
+    build: .
+    command: ./todo_linux
+    ports:
+      - 8080:12345
+    depends_on:
+      - db
+    links:
+      - db
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./CreateDB.sql:/docker-entrypoint-initdb.d/CreateDB.sql
+    ports:
+      - 5432:5432
+
